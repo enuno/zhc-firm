@@ -41,6 +41,56 @@ The system is built for **serious, mission-critical work** — not a demo or toy
 - Role-based access and search isolation so agents only see what their function requires.
 - A clean separation between legal research and education (what this platform does) and individualized legal advice (what it must never do).
 
+### Conceptual System Architecture
+```
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    HUMAN STAFF INTERFACE (n8n)                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │ Case Review │  │  Override   │  │   Attorney Assignment   │  │
+│  │   Queue     │  │   Controls  │  │      Dashboard          │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ (webhooks/API calls)
+┌─────────────────────────────────────────────────────────────────┐
+│              LANGGRAPH ORCHESTRATION ENGINE                     │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  STATE GRAPH: Case Intake → Research → Documents → Out  │    │
+│  │                                                         │    │
+│  │  Nodes: anonymize → triage → violation_scan → [human?]  │    │
+│  │         → research → generate → publish → archive       │    │
+│  │                                                         │    │
+│  │  Human Gates: review_required → n8n webhook → resume    │    │
+│  └─────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   RESEARCH   │    │   DOCUMENT   │    │   ADVOCACY   │
+│   AGENTS     │    │   AGENTS     │    │    AGENTS    │
+│  (Ollama)    │    │  (Ollama)    │    │   (Ollama)   │
+├──────────────┤    ├──────────────┤    ├──────────────┤
+│• Case Law    │    │• Arweave     │    │• Brief Gen   │
+│• Violations  │    │  Publisher   │    │• Pro Bono    │
+│• Precedents  │    │• Redaction   │    │  Matcher     │
+│• Statutes    │    │• Templates   │    │• FOIA        │
+└──────────────┘    └──────────────┘    └──────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATA LAYER                                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │   Qdrant    │  │   Neo4j     │  │      Arweave            │  │
+│  │  (Vectors)  │  │   (Graph)   │  │    (Permaweb)           │  │
+│  │  Embeddings │  │  Precedents │  │                         │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 2. Platform Mission
